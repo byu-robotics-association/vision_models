@@ -1,0 +1,10 @@
+# Training a new model shouldn't be related a git commit
+datasets/data/
+runs/
+
+# Model weight files
+*.pt
+*.onnx
+
+# Python
+.venv

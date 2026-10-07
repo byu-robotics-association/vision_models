@@ -1,0 +1,15 @@
+[project]
+name = "vision-models"
+version = "0.0.0"
+description = "Training and testing of YOLO models for y_boat_core"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ultralytics>=8.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
