@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "buoy",
+  "version": "0.3.0",
+  "classes": ["red_buoy", "green_buoy", "black_buoy", "yellow_buoy"],
+  "imgsz": [640, 640],
+  "dataset": "roboflow:mhseals/buoys-4naae@v7",
+  "training_commit": "0123456789abcdef0123456789abcef012345678",
+  "ultralytics_version": "8.4.157",
+  "metrics": {"map50": 0.91, "map50_95": 0.68},
+  "files": [
+    {
+      "filename": "buoy.pt", 
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    },
+    {
+      "filename": "buoy.onnx",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  ]
+}

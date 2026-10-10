@@ -8,3 +8,4 @@ runs/
 
 # Python
 .venv
+.ruff_cache
