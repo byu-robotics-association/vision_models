@@ -1,0 +1,87 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/byu-robotics-association/vision_models/main/manifest/v1/manifest.schema.json",
+    "title": "Release Manifest",
+    "description": "Schema for manifest files for model version releases",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "const": 1
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of model family. For example, 'buoys'"
+        },
+        "version": {
+            "type": "string",
+            "description": "Major.Minor.Patch",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "classes": {
+            "type": "array",
+            "description": "Classes detected by this model. The model itself only reports IDs (integer), which corresponds the indices in this array, so order needs to be preserved",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "imgsz": {
+            "type": "array",
+            "items": {
+                "type": "integer",
+                "minimum": 1
+            },
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "dataset": {
+            "type": "string"
+        },
+        "training_commit": {
+            "type": "string",
+            "pattern": "^[\\da-fA-F]{40}$"
+        },
+        "ultralytics_version": {
+            "type": "string",
+            "description": "Version of Ultralytics library used",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "metrics": {
+            "description": "TBD"
+        },
+        "files": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "filename": {
+                        "type": "string"
+                    },
+                    "sha256": {
+                        "type": "string",
+                        "pattern": "^[\\da-fA-F]{64}$"
+                    }
+                },
+                "required": [
+                    "filename",
+                    "sha256"
+                ],
+                "additionalProperties": false
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "schema_version",
+        "name",
+        "version",
+        "classes",
+        "imgsz",
+        "dataset",
+        "training_commit",
+        "ultralytics_version",
+        "files"
+    ],
+    "additionalProperties": false
+}
