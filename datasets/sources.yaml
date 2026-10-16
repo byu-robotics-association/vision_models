@@ -1,0 +1,32 @@
+
+schema_version: 1
+
+# Standardized classes our boat will recognize
+canonical_classes:
+  - red_buoy
+  - green_buoy
+  - black_buoy
+  - yellow_buoy
+  - blue_buoy
+  - dock
+
+# Datasets to pull and merge
+sources:
+  - name: mhseals-buoys
+    kind: roboflow
+    workspace: mhseals
+    project: buoys-4naae
+    version: 21  # Verified this against Roboflow
+    format: yolov8
+    license: CC-BY-NC-SA-4.0
+    expected images: 49613
+    use: [train, val]
+    unmapped: drop
+
+    class_map:
+      red_buoy: red_buoy
+      green_buoy: green_buoy
+      black_buoy: black_buoy
+      yellow_buoy: yellow_buoy
+      blue_buoy: blue_buoy
+      dock: dock
