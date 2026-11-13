@@ -37,8 +37,9 @@ sources:
 
     # these are the six classes I have chosen, not sure what classes we actually need
     class_map:
-      "Red Buoy": red_buoy
-      "Green Buoy": green_buoy
+      "0": green_buoy
+      "1": null
+      "2": red_buoy
       # black_buoy: black_buoy
       # yellow_buoy: yellow_buoy
       # blue_buoy: blue_buoy

@@ -2,6 +2,7 @@
 import shutil
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 import yaml
 from roboflow import Roboflow
@@ -212,6 +213,7 @@ def process_dataset(source_dir, output_dir, source_config, canonical_classes):
 
 
 def main():
+    load_dotenv()
     # Read dataset configuration
     config_path = Path("datasets/sources.yaml")
 

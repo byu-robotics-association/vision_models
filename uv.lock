@@ -2934,6 +2934,7 @@ version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "jsonschema" },
+    { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "roboflow" },
     { name = "ultralytics", version = "8.4.123", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' and sys_platform == 'darwin'" },
@@ -2949,6 +2950,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "jsonschema", specifier = ">=4.0" },
+    { name = "python-dotenv", specifier = ">=1.2.4" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "roboflow", specifier = ">=1.7.1" },
     { name = "ultralytics", specifier = ">=8.4" },

@@ -9,6 +9,7 @@ dependencies = [
     "jsonschema>=4.0",
     "pyyaml>=6.0.3",
     "roboflow>=1.7.1",
+    "python-dotenv>=1.2.4",
 ]
 
 [dependency-groups]
