@@ -203,6 +203,12 @@ def main() -> None:
 
     rf = Roboflow(api_key=api_key)
 
+    # Rebuild the merged dataset from scratch so it always matches sources.yaml
+    merged_dir = Path('datasets/merged')
+
+    if merged_dir.exists():
+        shutil.rmtree(merged_dir)
+
     # Process each configured source
     for source in config['sources']:
         print(f'Processing: {source["name"]}')
@@ -215,17 +221,24 @@ def main() -> None:
         project = rf.workspace(workspace).project(project_name)
         version = project.version(version_number)
 
-        # Download the specified dataset
-        dataset = version.download(
-            export_format, location=f'datasets/raw/{source["name"]}'
-        )
+        download_dir = Path(f'datasets/raw/{source["name"]}-v{version_number}')
+        already_downloaded = download_dir.exists()
 
-        print(f'Downloaded to: {dataset.location}')
+        # Download the specified dataset (Roboflow skips this if the folder exists)
+        dataset = version.download(export_format, location=str(download_dir))
+
+        if already_downloaded:
+            print(
+                f'Skipped download: version {version_number} already exists at '
+                f'{dataset.location}'
+            )
+        else:
+            print(f'Downloaded to: {dataset.location}')
 
         # Process the downloaded dataset
         process_dataset(
             source_dir=dataset.location,
-            output_dir='datasets/merged',
+            output_dir=merged_dir,
             source_config=source,
             canonical_classes=config['canonical_classes'],
         )

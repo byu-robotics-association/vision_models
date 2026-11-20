@@ -18,5 +18,6 @@
           "source.fixAll.ruff": "always",
           "source.organizeImports.ruff": "always"
         }
-    }
+    },
+    "python.terminal.useEnvFile": true
 }
