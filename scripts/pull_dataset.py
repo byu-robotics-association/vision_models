@@ -1,24 +1,25 @@
-
-import shutil
 import os
 from pathlib import Path
+import shutil
+from typing import Any
+
 from dotenv import load_dotenv
-
-import yaml
 from roboflow import Roboflow
+import yaml
 
 
-def build_class_mapping(source_classes, canonical_classes, class_map):
+def build_class_mapping(
+    source_classes: list[str],
+    canonical_classes: list[str],
+    class_map: dict[str, str | None],
+) -> dict[int, int]:
     """
     Create a mapping from source class IDs to canonical class IDs.
 
     Returns a dictionary like:
         {0: 1, 1: 0, 2: 5}
     """
-    canonical_ids = {
-        name: index
-        for index, name in enumerate(canonical_classes)
-    }
+    canonical_ids = {name: index for index, name in enumerate(canonical_classes)}
 
     mapping = {}
 
@@ -30,17 +31,14 @@ def build_class_mapping(source_classes, canonical_classes, class_map):
             continue
 
         if target_name not in canonical_ids:
-            raise ValueError(
-                f"Unknown canonical class: {target_name}"
-            )
+            raise ValueError(f'Unknown canonical class: {target_name}')
 
         mapping[source_id] = canonical_ids[target_name]
 
     return mapping
 
 
-
-def load_source_classes(data_yaml_path):
+def load_source_classes(data_yaml_path: str | Path) -> list[str]:
     """
     Read class names from an exported YOLO data.yaml file.
 
@@ -48,10 +46,10 @@ def load_source_classes(data_yaml_path):
     """
     data_yaml_path = Path(data_yaml_path)
 
-    with data_yaml_path.open("r", encoding="utf-8") as file:
+    with data_yaml_path.open('r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
 
-    names = data["names"]
+    names = data['names']
 
     # Some YOLO files use a list, others use a dictionary.
     if isinstance(names, list):
@@ -61,21 +59,18 @@ def load_source_classes(data_yaml_path):
         class_ids = [int(key) for key in names]
 
         if sorted(class_ids) != list(range(len(class_ids))):
-            raise ValueError("Class IDs must be consecutive starting at 0")
+            raise ValueError('Class IDs must be consecutive starting at 0')
 
         return [
-            value
-            for _, value in sorted(
-                names.items(),
-                key=lambda item: int(item[0])
-            )
+            value for _, value in sorted(names.items(), key=lambda item: int(item[0]))
         ]
 
-    raise ValueError("Unsupported class names format")
+    raise ValueError('Unsupported class names format')
 
 
-
-def convert_yolo_labels(input_path, output_path, mapping):
+def convert_yolo_labels(
+    input_path: str | Path, output_path: str | Path, mapping: dict[int, int]
+) -> None:
     """
     Convert a YOLO annotation file using a class-ID mapping.
 
@@ -86,7 +81,7 @@ def convert_yolo_labels(input_path, output_path, mapping):
 
     converted_lines = []
 
-    with input_path.open("r", encoding="utf-8") as file:
+    with input_path.open('r', encoding='utf-8') as file:
         for line_number, line in enumerate(file, start=1):
             parts = line.strip().split()
 
@@ -95,8 +90,7 @@ def convert_yolo_labels(input_path, output_path, mapping):
 
             if len(parts) != 5:
                 raise ValueError(
-                    f"{input_path}:{line_number}: "
-                    "Expected 5 values per YOLO detection."
+                    f'{input_path}:{line_number}: Expected 5 values per YOLO detection.'
                 )
 
             old_class_id = int(parts[0])
@@ -108,62 +102,56 @@ def convert_yolo_labels(input_path, output_path, mapping):
             new_class_id = mapping[old_class_id]
 
             # Preserve the original bounding-box coordinates
-            converted_lines.append(
-                " ".join([str(new_class_id)] + parts[1:])
-            )
+            converted_lines.append(' '.join([str(new_class_id)] + parts[1:]))
 
     # Create output directory if needed
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with output_path.open("w", encoding="utf-8") as file:
+    with output_path.open('w', encoding='utf-8') as file:
         if converted_lines:
-            file.write("\n".join(converted_lines) + "\n")
+            file.write('\n'.join(converted_lines) + '\n')
 
 
-
-def process_dataset(source_dir, output_dir, source_config, canonical_classes):
+def process_dataset(
+    source_dir: str | Path,
+    output_dir: str | Path,
+    source_config: dict[str, Any],
+    canonical_classes: list[str],
+) -> None:
     """
-    Copy source images into a standardized dataset and
-    convert their annotation class IDs.
+    Copy source images into a standardized dataset and convert their class IDs.
 
-    Assuming a YOLO object-detection dataset.
+    Assumes a YOLO object-detection dataset.
     """
     source_dir = Path(source_dir)
     output_dir = Path(output_dir)
 
     # 1. Read the source dataset's class ordering
-    source_classes = load_source_classes(source_dir / "data.yaml")
+    source_classes = load_source_classes(source_dir / 'data.yaml')
 
     # 2. Create the mapping from original IDs to our IDs
     mapping = build_class_mapping(
-        source_classes,
-        canonical_classes,
-        source_config["class_map"]
+        source_classes, canonical_classes, source_config['class_map']
     )
 
     # Roboflow often names its validation split "valid"
-    split_names = {
-        "train": "train",
-        "valid": "val",
-        "val": "val",
-        "test": "test"
-    }
+    split_names = {'train': 'train', 'valid': 'val', 'val': 'val', 'test': 'test'}
 
-    image_extensions = {".jpg", ".jpeg", ".png"}
+    image_extensions = {'.jpg', '.jpeg', '.png'}
 
     for source_split, output_split in split_names.items():
-        images_dir = source_dir / source_split / "images"
-        labels_dir = source_dir / source_split / "labels"
+        images_dir = source_dir / source_split / 'images'
+        labels_dir = source_dir / source_split / 'labels'
 
         if not images_dir.exists():
             continue
 
         # Only process splits approved in sources.yaml
-        if output_split not in source_config["use"]:
+        if output_split not in source_config['use']:
             continue
 
-        output_images = output_dir / "images" / output_split
-        output_labels = output_dir / "labels" / output_split
+        output_images = output_dir / 'images' / output_split
+        output_labels = output_dir / 'labels' / output_split
 
         output_images.mkdir(parents=True, exist_ok=True)
         output_labels.mkdir(parents=True, exist_ok=True)
@@ -176,90 +164,74 @@ def process_dataset(source_dir, output_dir, source_config, canonical_classes):
                 continue
 
             # Prefix names to avoid collisions across datasets
-            new_stem = f"{source_config['name']}__{image_path.stem}"
+            new_stem = f'{source_config["name"]}__{image_path.stem}'
 
-            new_image = output_images / (
-                new_stem + image_path.suffix
-            )
-            new_label = output_labels / (
-                new_stem + ".txt"
-            )
+            new_image = output_images / (new_stem + image_path.suffix)
+            new_label = output_labels / (new_stem + '.txt')
 
-            original_label = labels_dir / (
-                image_path.stem + ".txt"
-            )
+            original_label = labels_dir / (image_path.stem + '.txt')
 
             if new_image.exists() or new_label.exists():
-                raise FileExistsError(
-                    f"Output already exists for {image_path.name}"
-                )
+                raise FileExistsError(f'Output already exists for {image_path.name}')
 
             # Copy the original image
             shutil.copy2(image_path, new_image)
 
             if original_label.exists():
                 # Convert its annotations
-                convert_yolo_labels(
-                    original_label,
-                    new_label,
-                    mapping
-                )
+                convert_yolo_labels(original_label, new_label, mapping)
             else:
                 # An image without objects is a negative example
-                new_label.write_text("", encoding="utf-8")
+                new_label.write_text('', encoding='utf-8')
 
-        print(f"Processed {source_config['name']}: {source_split}")
+        print(f'Processed {source_config["name"]}: {source_split}')
 
 
-
-def main():
+def main() -> None:
     load_dotenv()
     # Read dataset configuration
-    config_path = Path("datasets/sources.yaml")
+    config_path = Path('datasets/sources.yaml')
 
-    with config_path.open("r", encoding="utf-8") as file:
+    with config_path.open('r', encoding='utf-8') as file:
         config = yaml.safe_load(file)
 
     # Read API key from environment
-    api_key = os.environ.get("ROBOFLOW_API_KEY")
+    api_key = os.environ.get('ROBOFLOW_API_KEY')
 
     if not api_key:
-        raise RuntimeError(
-            "ROBOFLOW_API_KEY environment variable is missing."
-        )
+        raise RuntimeError('ROBOFLOW_API_KEY environment variable is missing.')
 
     rf = Roboflow(api_key=api_key)
 
     # Process each configured source
-    for source in config["sources"]:
-        print(f"Processing: {source['name']}")
+    for source in config['sources']:
+        print(f'Processing: {source["name"]}')
 
-        workspace = source["workspace"]
-        project_name = source["project"]
-        version_number = source["version"]
-        export_format = source["format"]
+        workspace = source['workspace']
+        project_name = source['project']
+        version_number = source['version']
+        export_format = source['format']
 
         project = rf.workspace(workspace).project(project_name)
         version = project.version(version_number)
 
         # Download the specified dataset
         dataset = version.download(
-            export_format,
-            location=f"datasets/raw/{source['name']}"
+            export_format, location=f'datasets/raw/{source["name"]}'
         )
 
-        print(f"Downloaded to: {dataset.location}")
+        print(f'Downloaded to: {dataset.location}')
 
         # Process the downloaded dataset
         process_dataset(
             source_dir=dataset.location,
-            output_dir="datasets/merged",
+            output_dir='datasets/merged',
             source_config=source,
-            canonical_classes=config["canonical_classes"]
+            canonical_classes=config['canonical_classes'],
         )
 
-        print(f"Finished processing {source['name']}")
+        print(f'Finished processing {source["name"]}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
