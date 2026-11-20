@@ -12,6 +12,7 @@ runs/
 # Python
 .venv
 .ruff_cache
+__pycache__
 
 #This prevents downloaded training images from accidentally being included in commits
 datasets/
